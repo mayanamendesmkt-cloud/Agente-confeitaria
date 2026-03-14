@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 
 // ─── GEMINI API ───────────────────────────────────────────────────────────────
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
 async function callGemini(prompt, systemPrompt = "") {
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
