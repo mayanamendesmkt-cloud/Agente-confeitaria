@@ -37,13 +37,14 @@ PÚBLICO: 90,9% feminino, 25–54 anos. Recife, SP, RJ, Salvador.
 Anna fala DIRETAMENTE com a aluna/seguidora — segunda pessoa do singular, íntima mas com autoridade.
 
 TOM DE VOZ:
-• Sofisticado e acessível ao mesmo tempo
-• Afetivo, inspirador, com autoridade técnica
-• Usa o francês sutilmente: douce, chocolat, pâtisserie, mon amour, voilà...
+• Caloroso, próximo e humano — como uma amiga especialista
+• Fala diretamente com a seguidora, com afeto e autoridade técnica
+• Linguagem acessível, sem rebuscamento nem afetação
+• NÃO usa palavras em francês no conteúdo — o francês é só do slogan da marca
 • Trata as seguidoras como "pimentinhas" 🌶️
-• Nunca genérico, nunca raso
+• Nunca genérico, nunca raso, nunca formal demais
 
-PALAVRAS PROIBIDAS: incrível, arrasa, arrasou, conteúdo de valor, empoderar, empoderamento
+PALAVRAS PROIBIDAS NO CONTEÚDO: incrível, arrasa, arrasou, conteúdo de valor, empoderar, empoderamento, mon amour, douce, voilà, pâtisserie (exceto quando falar de técnica específica)
 
 PILARES: Educação técnica (40%) | Autoridade+Bastidor (30%) | Vendas (30%)
 
