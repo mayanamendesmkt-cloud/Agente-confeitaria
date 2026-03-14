@@ -734,7 +734,16 @@ Datas do mês: ${datas}
 Responda APENAS com JSON válido, sem texto adicional, sem markdown:
 {"topics":[{"tema":"nome do tema","temperatura":"quente","motivo":"por que está em alta — 1 linha"},{"tema":"nome","temperatura":"morno","motivo":"explicação"},{"tema":"nome","temperatura":"frio","motivo":"explicação"}]}
 Use temperatura: "quente", "morno" ou "frio". Retorne exatamente 6 tópicos.`);
-      const clean = text.replace(/```json|```/g,"").trim();
+      // Robust JSON extraction
+      let clean = text.replace(/```json|```/g,"").trim();
+      // Find the JSON object in the response
+      const jsonStart = clean.indexOf('{');
+      const jsonEnd = clean.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        clean = clean.substring(jsonStart, jsonEnd + 1);
+      }
+      // Remove any control characters that break JSON
+      clean = clean.replace(/[ -]/g, ' ');
       const parsed = JSON.parse(clean);
       setTopics(parsed.topics || []);
     } catch(e) { setError(`Erro ao buscar tendências: ${e.message}`); }
