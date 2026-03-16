@@ -183,56 +183,153 @@ function Field({ field, value, onChange }) {
 function CalendarioView() {
   const [fields, setFields] = useState({});
   const [result, setResult] = useState("");
+  const [gradeData, setGradeData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [view, setView] = useState("briefing"); // briefing | grade
 
   const FIELDS = [
-    { name:"mes", label:"Mês e Ano", placeholder:"Ex: Abril de 2025" },
-    { name:"foco", label:"Foco estratégico do mês", placeholder:"Ex: Lançamento do curso de páscoa, alta temporada de encomendas..." },
+    { name:"mes", label:"Mês e Ano", placeholder:"Ex: Março de 2025" },
+    { name:"foco", label:"Foco estratégico do mês", placeholder:"Ex: Páscoa lucrativa, lançamento do curso de chocolate..." },
     { name:"produto", label:"Produto ou curso em destaque", placeholder:"Ex: Curso de Chocolate Belga, Kit Páscoa Premium..." },
     { name:"lancamento", label:"Tem lançamento?", type:"select", options:["Não","Sim — curso","Sim — produto","Sim — evento no Espaço"] },
+    { name:"tom", label:"Tom do mês", type:"select", options:["Inspirador e motivacional","Urgência e escassez","Educativo e técnico","Bastidor e conexão","Misto — equilibrado"] },
     { name:"qtd", label:"Quantidade de posts", type:"select", options:["12 posts (3/semana)","16 posts (4/semana)","20 posts (5/semana)"] },
+    { name:"obs", label:"Alguma data ou evento especial do cliente?", placeholder:"Ex: aniversário da Anna, evento no Espaço, viagem... (opcional)", type:"textarea", rows:2 },
   ];
 
   const generate = async () => {
     if (!fields.mes || !fields.foco) { setError("Preencha pelo menos mês e foco estratégico."); return; }
-    setLoading(true); setError(""); setResult("");
+    setLoading(true); setError(""); setResult(""); setGradeData(null);
     const mesNum = MESES.indexOf(fields.mes?.split(" ")[0]) + 1 || getMesNum();
     const datas = (DATAS_FIXAS[mesNum] || []).join(" | ");
     try {
-      const r = await callGemini(`Crie um calendário editorial completo para o Instagram da Anna Corinna.
+      const r = await callGemini(`Crie um briefing estratégico e calendário editorial completo para o Instagram da Anna Corinna.
 
 MÊS: ${fields.mes}
 FOCO ESTRATÉGICO: ${fields.foco}
 PRODUTO/CURSO EM DESTAQUE: ${fields.produto || "Não especificado"}
 LANÇAMENTO: ${fields.lancamento || "Não"}
+TOM DO MÊS: ${fields.tom || "Misto — equilibrado"}
 QUANTIDADE: ${fields.qtd || "16 posts"}
-DATAS COMEMORATIVAS DO MÊS: ${datas}
+DATAS COMEMORATIVAS: ${datas}
+OBSERVAÇÕES ESPECIAIS: ${fields.obs || "Nenhuma"}
 
-ENTREGUE:
-1. TEMA CENTRAL DO MÊS (1 frase que resume a estratégia)
-2. DISTRIBUIÇÃO: quantos posts por pilar (40% educação / 30% autoridade+bastidor / 30% vendas)
-3. DESTAQUES DO MÊS: datas comemorativas relevantes para confeitaria com sugestão de pauta
-4. GRADE SEMANAL (4 semanas):
-   Semana X — Tema da semana
-   • Post 1: [Pilar] — Tema específico — Formato (Reel 30s / Reel 60s / Carrossel / Arte estática)
-   • Post 2: [Pilar] — Tema específico — Formato
-   (continue para todos os posts da semana)
-5. FRASE DO MÊS: uma frase de posicionamento no tom da Anna para usar nas comunicações`, SYSTEM);
+ENTREGUE NESTE FORMATO EXATO:
+
+## TEMA CENTRAL
+[1 frase que resume toda a estratégia do mês]
+
+## PALAVRAS-CHAVE DO MÊS
+[5 a 7 palavras ou expressões que devem guiar o conteúdo]
+
+## ESTÉTICA SUGERIDA
+[Paleta de cores, referências visuais e mood board em palavras — ex: tons terrosos, flat lay, bastidor real]
+
+## DISTRIBUIÇÃO
+Educação técnica: X posts | Autoridade+Bastidor: X posts | Vendas: X posts
+
+## DESTAQUES DO MÊS
+[Datas comemorativas relevantes para confeitaria com sugestão de pauta — 1 linha cada]
+
+## GRADE SEMANAL
+
+### SEMANA 1 — [Tema da semana]
+| Data | Tema | Pilar | Formato |
+|------|------|-------|---------|
+| [dd/mm] | [tema do post] | [Educação/Autoridade/Bastidor/Vendas] | [Reel 30s/Reel 60s/Carrossel/Arte] |
+(repita para cada post da semana)
+
+### SEMANA 2 — [Tema da semana]
+(mesma estrutura)
+
+### SEMANA 3 — [Tema da semana]
+(mesma estrutura)
+
+### SEMANA 4 — [Tema da semana]
+(mesma estrutura)
+
+## FRASE DO MÊS
+[Uma frase no tom da Anna para usar nas comunicações do mês]`, SYSTEM);
       setResult(r);
-    } catch(e) { setError(`Erro ao gerar: ${e.message}. Verifique sua API Key e tente novamente.`); }
+      setView("grade");
+    } catch(e) { setError(`Erro ao gerar: ${e.message}.`); }
     setLoading(false);
+  };
+
+  const PILAR_COLORS = {
+    "Educação": "#C4713A", "Educacao": "#C4713A",
+    "Autoridade": "#7A3BC4", "Bastidor": "#2D5B9A",
+    "Vendas": "#B22222", "Vendas e": "#B22222",
+  };
+
+  const getPilarColor = (pilar) => {
+    const key = Object.keys(PILAR_COLORS).find(k => pilar?.includes(k));
+    return key ? PILAR_COLORS[key] : "#8B6914";
   };
 
   return (
     <div>
-      {FIELDS.map(f => <Field key={f.name} field={f} value={fields[f.name]} onChange={v => setFields(p => ({...p,[f.name]:v}))} />)}
-      <button onClick={generate} disabled={loading} style={{ width:"100%", padding:"0.8rem", background:"linear-gradient(135deg,#3B1A0A,#6B3A1A)", border:"1px solid #C4713A44", borderRadius:10, color:"#f0d5a0", fontSize:13, fontWeight:700, cursor:loading?"not-allowed":"pointer", letterSpacing:0.5 }}>
-        {loading ? "Gerando calendário..." : "📅 Gerar Calendário Editorial"}
-      </button>
-      {error && <ErrorBox msg={error} />}
-      {loading && <Spinner />}
-      {result && <ResultBox text={result} accent="#C4713A" />}
+      {/* Tab switcher */}
+      {result && (
+        <div style={{ display:"flex", gap:6, marginBottom:"1rem" }}>
+          {[{id:"briefing",label:"📋 Briefing"},{id:"grade",label:"🗓️ Grade do Mês"}].map(t => (
+            <button key={t.id} onClick={() => setView(t.id)} style={{ flex:1, padding:"0.5rem", background: view===t.id ? "rgba(196,113,58,0.3)" : "transparent", border:`1px solid ${view===t.id ? "#C4713A" : "rgba(255,255,255,0.1)"}`, borderRadius:8, color: view===t.id ? "#e8c99a" : "#9B6B3A", fontSize:12, fontWeight: view===t.id ? 700 : 400, cursor:"pointer" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Form */}
+      {(!result || view === "briefing") && (
+        <>
+          {FIELDS.map(f => <Field key={f.name} field={f} value={fields[f.name]} onChange={v => setFields(p => ({...p,[f.name]:v}))} />)}
+          <button onClick={generate} disabled={loading} style={{ width:"100%", padding:"0.8rem", background:"linear-gradient(135deg,#3B1A0A,#6B3A1A)", border:"1px solid #C4713A44", borderRadius:10, color:"#f0d5a0", fontSize:13, fontWeight:700, cursor:loading?"not-allowed":"pointer", letterSpacing:0.5 }}>
+            {loading ? "Gerando calendário..." : "📅 Gerar Calendário Editorial"}
+          </button>
+          {error && <ErrorBox msg={error} />}
+          {loading && <Spinner />}
+          {result && view === "briefing" && <ResultBox text={result} accent="#C4713A" />}
+        </>
+      )}
+
+      {/* Grade view */}
+      {result && view === "grade" && (
+        <div>
+          {/* Parse and render weeks from result */}
+          {result.split("### SEMANA").slice(1).map((semana, si) => {
+            const lines = semana.trim().split("
+");
+            const titulo = lines[0]?.replace(/^\d+\s*[—–-]\s*/, "").trim();
+            const tableLines = lines.filter(l => l.startsWith("|") && !l.includes("---"));
+            const posts = tableLines.slice(1).map(l => {
+              const cells = l.split("|").map(c => c.trim()).filter(Boolean);
+              return { data: cells[0], tema: cells[1], pilar: cells[2], formato: cells[3] };
+            }).filter(p => p.data && p.tema);
+
+            return (
+              <div key={si} style={{ marginBottom:"1.25rem" }}>
+                <div style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"0.95rem", color:"#e8c99a", marginBottom:"0.6rem", paddingBottom:"0.4rem", borderBottom:"1px solid rgba(196,113,58,0.2)" }}>
+                  📅 Semana {si+1} — {titulo}
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {posts.map((post, pi) => (
+                    <div key={pi} style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${getPilarColor(post.pilar)}33`, borderRadius:10, padding:"0.7rem 0.9rem", display:"grid", gridTemplateColumns:"60px 1fr auto auto", gap:8, alignItems:"center" }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:"#7A5C3A", textAlign:"center", background:"rgba(255,255,255,0.05)", borderRadius:6, padding:"4px" }}>{post.data}</div>
+                      <div style={{ fontSize:12, color:"#e8c99a", lineHeight:1.4 }}>{post.tema}</div>
+                      <div style={{ fontSize:10, fontWeight:700, color:getPilarColor(post.pilar), background:`${getPilarColor(post.pilar)}22`, borderRadius:20, padding:"2px 8px", whiteSpace:"nowrap" }}>{post.pilar?.split(" ")[0]}</div>
+                      <div style={{ fontSize:10, color:"#9B6B3A", background:"rgba(255,255,255,0.05)", borderRadius:20, padding:"2px 8px", whiteSpace:"nowrap" }}>{post.formato}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          {/* Fallback: show raw result if parsing fails */}
+          {result.split("### SEMANA").length <= 1 && <ResultBox text={result} accent="#C4713A" />}
+        </div>
+      )}
     </div>
   );
 }
