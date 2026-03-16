@@ -299,8 +299,7 @@ Educação técnica: X posts | Autoridade+Bastidor: X posts | Vendas: X posts
         <div>
           {/* Parse and render weeks from result */}
           {result.split("### SEMANA").slice(1).map((semana, si) => {
-            const lines = semana.trim().split("
-");
+            const lines = semana.trim().split("\n");
             const titulo = lines[0]?.replace(/^\d+\s*[—–-]\s*/, "").trim();
             const tableLines = lines.filter(l => l.startsWith("|") && !l.includes("---"));
             const posts = tableLines.slice(1).map(l => {
